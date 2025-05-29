@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專案管理平台 Google 整合比較表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .filter-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:hover {
+            border-color: #4facfe;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .table-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f7fafc;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .platform-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .platform-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .icon-asana { background: linear-gradient(135deg, #f06292 0%, #f8bbd9 100%); }
+        .icon-clickup { background: linear-gradient(135deg, #7b68ee 0%, #9370db 100%); }
+        .icon-trello { background: linear-gradient(135deg, #0079bf 0%, #026aa7 100%); }
+        .icon-notion { background: linear-gradient(135deg, #000000 0%, #2d2d2d 100%); }
+        .icon-ntask { background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%); }
+        .icon-taskade { background: linear-gradient(135deg, #4ecdc4 0%, #00d2d3 100%); }
+        .icon-zenkit { background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%); }
+
+        .rating-stars {
+            display: flex;
+            gap: 2px;
+            font-size: 1.2rem;
+        }
+
+        .star-filled {
+            color: #ffc107;
+        }
+
+        .star-empty {
+            color: #e0e0e0;
+        }
+
+        .integration-level {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .level-very-high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .level-high {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .level-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .level-low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .feature-item {
+            background: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+
+        .limitations {
+            color: #e53e3e;
+            font-weight: 500;
+        }
+
+        .notes {
+            color: #4a5568;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .highlight-row {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 4px solid #ff9800;
+        }
+
+        .stats-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f7fafc;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .legend {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .legend h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f7fafc;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                justify-content: space-between;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .export-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-container {
+            animation: fadeIn 0.8s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 專案管理平台 Google 整合比較表</h1>
+            <p>深度分析各平台與 Google Workspace 的整合程度</p>
+        </div>
+
+        <div class="comparison-table">
+            <div class="table-header">
+                <h2>🚀 專案管理平台全方位比較</h2>
+            </div>
+            
+            <div class="table-container">
+                <table id="comparisonTable">
+                    <thead>
+                        <tr>
+                            <th>平台</th>
+                            <th>Google 整合程度</th>
+                            <th>整合功能項目</th>
+                            <th>免費方案限制</th>
+                            <th>備註/使用體驗</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="highlight-row" data-integration="very-high" data-plan="limited" data-recommend="highly-recommended">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-asana">A</div>
+                                    <strong>Asana</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                </div>
+                                <div class="integration-level level-very-high">非常高</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">Gmail 插件</div>
+                                    <div class="feature-item">Google Calendar 雙向同步</div>
+                                    <div class="feature-item">Google Drive 附件</div>
+                                    <div class="feature-item">SSO 單一登入</div>
+                                    <div class="feature-item">Sheets 匯出</div>
+                                </div>
+                            </td>
+                            <td class="limitations">免費最多 15 人，部分高階功能限制</td>
+                            <td class="notes">非常適合 Google Workspace 使用者，協作流暢、體驗完整</td>
+                        </tr>
+
+                        <tr data-integration="high" data-plan="unlimited" data-recommend="highly-recommended">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-clickup">C</div>
+                                    <strong>ClickUp</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-high">高</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">Gmail 插件</div>
+                                    <div class="feature-item">Calendar 同步</div>
+                                    <div class="feature-item">Drive 附件</div>
+                                    <div class="feature-item">Docs 支援</div>
+                                </div>
+                            </td>
+                            <td style="color: #38a169; font-weight: 600;">無人數限制，功能強大但設定複雜</td>
+                            <td class="notes">強大但學習曲線稍高，適合工程與多功能協作需求</td>
+                        </tr>
+
+                        <tr data-integration="medium" data-plan="limited" data-recommend="conditional">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-trello">T</div>
+                                    <strong>Trello</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-medium">中等</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">Calendar 同步（透過 Power-Up）</div>
+                                    <div class="feature-item">Drive 附件</div>
+                                </div>
+                            </td>
+                            <td class="limitations">Power-Up 數量有限，免費版最多 10 boards</td>
+                            <td class="notes">上手快但功能受限，較適合小型專案</td>
+                        </tr>
+
+                        <tr data-integration="low" data-plan="unlimited" data-recommend="conditional">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-notion">N</div>
+                                    <strong>Notion</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-low">低</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">需經第三方（Zapier、Make）</div>
+                                    <div class="feature-item">Gmail/Calendar/Drive 整合</div>
+                                </div>
+                            </td>
+                            <td style="color: #38a169; font-weight: 600;">免費人數不限、協作自由</td>
+                            <td class="notes">自由度高但 Google 整合不佳，適合做知識庫或筆記系統</td>
+                        </tr>
+
+                        <tr data-integration="medium" data-plan="limited" data-recommend="recommended">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-ntask">nT</div>
+                                    <strong>nTask</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-medium">中等</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">Calendar 同步（單向）</div>
+                                    <div class="feature-item">Drive 附件</div>
+                                </div>
+                            </td>
+                            <td class="limitations">免費最多 5 位成員</td>
+                            <td class="notes">介面簡單，適合任務型團隊，整合需要設定</td>
+                        </tr>
+
+                        <tr data-integration="low" data-plan="unlimited" data-recommend="conditional">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-taskade">Ta</div>
+                                    <strong>Taskade</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-low">低</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">基本的 Calendar 整合</div>
+                                    <div class="feature-item">可透過 Zapier 強化</div>
+                                </div>
+                            </td>
+                            <td style="color: #38a169; font-weight: 600;">免費功能豐富、儲存空間有限</td>
+                            <td class="notes">偏向輕量協作平台，強調簡潔與同步</td>
+                        </tr>
+
+                        <tr data-integration="medium" data-plan="limited" data-recommend="conditional">
+                            <td>
+                                <div class="platform-name">
+                                    <div class="platform-icon icon-zenkit">Z</div>
+                                    <strong>Zenkit</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-filled">⭐</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                    <span class="star-empty">☆</span>
+                                </div>
+                                <div class="integration-level level-medium">中等</div>
+                            </td>
+                            <td>
+                                <div class="features-list">
+                                    <div class="feature-item">支援 Calendar</div>
+                                    <div class="feature-item">部分 G Drive 整合</div>
+                                </div>
+                            </td>
+                            <td class="limitations">免費最多 3 位成員</td>
+                            <td class="notes">支援多種視圖，整合方式偏手動或透過連結</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+       
+
+    <script>
+        // 篩選功能
+        document.getElementById('integrationFilter').addEventListener('change', filterTable);
+        document.getElementById('planFilter').addEventListener('change', filterTable);
+        document.getElementById('recommendFilter').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const integrationFilter = document.getElementById('integrationFilter').value;
+            const planFilter = document.getElementById('planFilter').value;
+            const recommendFilter = document.getElementById('recommendFilter').value;
+            
+            const rows = document.querySelectorAll('#comparisonTable tbody tr');
+            
+            rows.forEach(row => {
+                let showRow = true;
+                
+                if (integrationFilter && !row.dataset.integration.includes(integrationFilter)) {
+                    showRow = false;
+                }
+                
+                if (planFilter && !row.dataset.plan.includes(planFilter)) {
+                    showRow = false;
+                }
+                
+                if (recommendFilter && !row.dataset.recommend.includes(recommendFilter)) {
+                    showRow = false;
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+
+        // 動畫效果
+        function highlightRow(row) {
+            row.style.transform = 'scale(1.02)';
+            row.style.boxShadow = '0 10px 30px rgba(79, 172, 254, 0.2)';
+            
+            setTimeout(() => {
+                row.style.transform = '';
+                row.style.boxShadow = '';
+            }, 2000);
+        }
+
+        // 表格行點擊效果
+        document.querySelectorAll('#comparisonTable tbody tr').forEach(row => {
+            row.addEventListener('click', () => highlightRow(row));
+        });
+
+        // 匯出功能
+        function exportToCSV() {
+            const table = document.getElementById('comparisonTable');
+            const rows = Array.from(table.querySelectorAll('tr'));
+            
+            const csvContent = rows.map(row => {
+                const cells = Array.from(row.querySelectorAll('th, td'));
+                return cells.map(cell => {
+                    let text = cell.textContent.trim();
+                    // 處理包含逗號的內容
+                    if (text.includes(',')) {
+                        text = `"${text}"`;
+                    }
+                    return text;
+                }).join(',');
+            }).join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '專案管理平台比較表.csv';
+            link.click();
+        }
+
+        function printTable() {
+            const printContent = document.querySelector('.comparison-table').outerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>專案管理平台比較表</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { width: 100%; border-collapse: collapse; }
+                            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                            .platform-name { font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>專案管理平台 Google 整合比較表</h1>
+                        ${printContent}
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function copyTableData() {
+            const table = document.getElementById('comparisonTable');
+            const range = document.createRange();
+            range.selectNode(table);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            
+            try {
+                document.execCommand('copy');
+                alert('表格資料已複製到剪貼簿！');
+            } catch (err) {
+                alert('複製失敗，請手動選取表格內容');
+            }
+            
+            window.getSelection().removeAllRanges();
+        }
+
+        // 載入動畫
+        window.addEventListener('load', () => {
+            const rows = document.querySelectorAll('#comparisonTable tbody tr');
+            rows.forEach((row, index) => {
+                setTimeout(() => {
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateY(20px)';
+                    row.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, 100);
+                
