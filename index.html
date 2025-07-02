@@ -3,716 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINE Bot + 本地 LLM 專案架構</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            display: grid;
-            gap: 30px;
-        }
-
-        .architecture-flow {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .flow-title {
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            color: #4a5568;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .flow-diagram {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .flow-step {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            min-width: 300px;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .flow-step:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(79, 172, 254, 0.3);
-        }
-
-        .flow-step.user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .flow-step.webhook {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .flow-step.analysis {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .flow-step.llm {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        .flow-step.response {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-
-        .flow-step.anythingllm {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            color: #333;
-        }
-
-        .arrow {
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid #4a5568;
-            opacity: 0.6;
-        }
-
-        .step-detail {
-            font-size: 0.9rem;
-            margin-top: 8px;
-            opacity: 0.9;
-        }
-
-        .modules-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-
-        .module-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .module-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .module-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .module-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-        }
-
-        .icon-linebot { background: #00c300; }
-        .icon-analysis { background: #4facfe; }
-        .icon-ollama { background: #43e97b; }
-        .icon-anythingllm { background: #f093fb; }
-        .icon-storage { background: #ffa726; }
-        .icon-vector { background: #ab47bc; }
-
-        .module-description {
-            color: #4a5568;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .module-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .feature-tag {
-            background: #e2e8f0;
-            color: #4a5568;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .resources-section {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            margin-top: 30px;
-        }
-
-        .resources-title {
-            font-size: 1.8rem;
-            color: #2d3748;
-            margin-bottom: 25px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .resources-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .resource-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            border-radius: 12px;
-            background: #f7fafc;
-            transition: all 0.3s ease;
-        }
-
-        .resource-item:hover {
-            background: #e2e8f0;
-            transform: translateX(5px);
-        }
-
-        .resource-status {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 0.8rem;
-        }
-
-        .status-required { background: #e53e3e; }
-        .status-complete { background: #38a169; }
-        .status-optional { background: #d69e2e; }
-
-        .resource-content {
-            flex: 1;
-        }
-
-        .resource-name {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-
-        .resource-description {
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .tab {
-            padding: 12px 24px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .tab.active {
-            background: white;
-            color: #4a5568;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .flow-step {
-                min-width: 250px;
-                padding: 15px 20px;
-            }
-            
-            .modules-section {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <title>競爭對手分析儀表板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<script>
-
-        function showStepDetail(stepType) {
-            const details = {
-                'user': '使用者透過 LINE 群組或私訊發送指令，包含查詢、摘要、檔案分析等需求。',
-                'webhook': 'Flask 服務器接收 LINE Webhook 事件，解析訊息內容和使用者資訊。',
-                'analysis': '分析使用者意圖，判斷是查詢類、摘要類或比對類任務，並準備相應的處理流程。結合多種 AI API 提供最適合的分析服務。',
-                'llm': '調用本地 Ollama 模型進行推理，結合知識庫資訊生成智能回應。',
-                'response': '將處理結果格式化後透過 LINE API 回傳給使用者。',
-                'anythingllm': '輔助系統提供 Web 界面進行文件管理、知識庫查詢和歷史紀錄檢視。'
-            };
-            
-            alert(details[stepType] || '此步驟的詳細說明');
-        }
-
-        function highlightModule(element) {
-            // Remove highlight from all cards
-            document.querySelectorAll('.module-card').forEach(card => {
-                card.style.transform = '';
-                card.style.boxShadow = '';
-            });
-            
-            // Highlight selected card
-            element.style.transform = 'scale(1.05)';
-            element.style.boxShadow = '0 25px 50px rgba(0,0,0,0.2)';
-            
-            // Reset after animation
-            setTimeout(() => {
-                element.style.transform = '';
-                element.style.boxShadow = '';
-            }, 2000);
-        }
-
-        // Add some interactive animations on load
-        window.addEventListener('load', () => {
-            const flowSteps = document.querySelectorAll('.flow-step');
-            flowSteps.forEach((step, index) => {
-                setTimeout(() => {
-                    step.style.opacity = '0';
-</script>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 LINE Bot + 本地 LLM 專案架構</h1>
-            <p>智能聊天機器人與知識管理系統</p>
-        </div>
+    <div class="dashboard-container">
+        <!-- 頂部導航 -->
+        <nav class="top-nav">
+            <div class="nav-brand">
+                <h1><i class="fas fa-chart-line"></i> 競爭對手分析儀表板</h1>
+            </div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" data-tab="overview">
+                    <i class="fas fa-tachometer-alt"></i> 總覽
+                </button>
+                <button class="tab-btn" data-tab="market-share">
+                    <i class="fas fa-chart-pie"></i> 市場份額
+                </button>
+                <button class="tab-btn" data-tab="pricing">
+                    <i class="fas fa-dollar-sign"></i> 價格策略
+                </button>
+                <button class="tab-btn" data-tab="voice-feedback">
+                    <i class="fas fa-comments"></i> 輿情回饋
+                </button>
+                <button class="tab-btn" data-tab="channel-supply">
+                    <i class="fas fa-truck"></i> 通路供應鏈
+                </button>
+            </div>
+        </nav>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('architecture', event)">系統架構</button>
-<button class="tab" onclick="showTab('modules', event)">模組詳情</button>
-<button class="tab" onclick="showTab('resources', event)">所需資源</button>
-        </div>
-<script>
-    function showTab(tabName, event) {
-      const contents = document.querySelectorAll('.tab-content');
-      const tabs = document.querySelectorAll('.tab');
+        <!-- 主要內容區域 -->
+        <main class="main-content">
+            <!-- 總覽頁面 -->
+            <div id="overview" class="tab-content active">
+                <div class="page-header">
+                    <h2>📊 總覽</h2>
+                    <p>提供高層快速掌握當前競爭格局與變化</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- KPI 指標卡 -->
+                    <div class="card kpi-cards">
+                        <h3>關鍵指標</h3>
+                        <div class="kpi-grid">
+                            <div class="kpi-card">
+                                <div class="kpi-value">42% ± 3.1%</div>
+                                <div class="kpi-label">市場佔有率</div>
+                                <div class="kpi-trend up">+2.3%</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-value">87.5% ± 2.8%</div>
+                                <div class="kpi-label">品牌聲量</div>
+                                <div class="kpi-trend up">+5.1%</div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-value">$125 ± $8</div>
+                                <div class="kpi-label">平均價格</div>
+                                <div class="kpi-trend down">-1.2%</div>
+                            </div>
+                        </div>
+                    </div>
 
-      contents.forEach(c => c.classList.remove('active'));
-      tabs.forEach(t => t.classList.remove('active'));
+                    <!-- 綜合競爭力雷達圖 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>綜合競爭力雷達圖</h3>
+                            <div class="info-icon" title="加權公式：市佔40%、技術30%、品牌聲量30%">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <div class="weight-controls">
+                            <label>市佔權重: <input type="range" id="marketWeight" min="0" max="100" value="40"> <span id="marketWeightValue">40%</span></label>
+                            <label>技術權重: <input type="range" id="techWeight" min="0" max="100" value="30"> <span id="techWeightValue">30%</span></label>
+                            <label>品牌權重: <input type="range" id="brandWeight" min="0" max="100" value="30"> <span id="brandWeightValue">30%</span></label>
+                        </div>
+                    </div>
 
-      document.getElementById(tabName).classList.add('active');
-      event.target.classList.add('active');
-    }
-  </script>
+                    <!-- 趨勢變化折線圖 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>趨勢變化分析</h3>
+                            <div class="chart-controls">
+                                <button class="btn-toggle active" data-mode="raw">原始數據</button>
+                                <button class="btn-toggle" data-mode="smooth">平滑趨勢</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                        <div class="chart-info">
+                            <small>樣本數: N=756 | 7日移動平均線</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="main-content">
-            <!-- Architecture Tab -->
-            <div id="architecture" class="tab-content active">
-                <div class="architecture-flow">
-                    <h2 class="flow-title">📊 系統流程架構圖</h2>
-                    <div class="flow-diagram">
-                        <div class="flow-step user" onclick="showStepDetail('user')">
-                            <div><strong>👤 使用者</strong></div>
-                            <div class="step-detail">LINE 群組 / 私訊互動</div>
+            <!-- 市場份額頁面 -->
+            <div id="market-share" class="tab-content">
+                <div class="page-header">
+                    <h2>🧭 市場份額分析</h2>
+                    <p>掌握競爭者市佔分布與變化</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- 市佔率圓餅圖 -->
+                    <div class="card">
+                        <h3>目前市佔率分布</h3>
+                        <div class="chart-container">
+                            <canvas id="marketSharePie"></canvas>
                         </div>
-                        <div class="arrow"></div>
-                        
-                        <div class="flow-step webhook" onclick="showStepDetail('webhook')">
-                            <div><strong>🔗 LINE Bot Webhook</strong></div>
-                            <div class="step-detail">Flask Server 接收訊息</div>
+                        <div class="chart-info">
+                            <small>基於2025年Q2銷售報告，N=1342</small>
                         </div>
-                        <div class="arrow"></div>
-                        
-                        <div class="flow-step analysis" onclick="showStepDetail('analysis')">
-                            <div><strong>🧠 任務判斷 + 查詢分析</strong></div>
-                            <div class="step-detail">指令解析 • 意圖識別 • 任務分派</div>
+                    </div>
+
+                    <!-- 市佔率長條圖 -->
+                    <div class="card">
+                        <h3>競爭者市佔比較</h3>
+                        <div class="chart-container">
+                            <canvas id="marketShareBar"></canvas>
                         </div>
-                        <div class="arrow"></div>
-                        
-                        <div class="flow-step llm" onclick="showStepDetail('llm')">
-                            <div><strong>🚀 Agent + 本地 LLM</strong></div>
-                            <div class="step-detail">Ollama (Mistral/TinyLLaMA)</div>
+                    </div>
+
+                    <!-- 時間趨勢圖 -->
+                    <div class="card">
+                        <h3>市佔率時間趨勢</h3>
+                        <div class="chart-container">
+                            <canvas id="marketTrendChart"></canvas>
                         </div>
-                        <div class="arrow"></div>
-                        
-                        <div class="flow-step response" onclick="showStepDetail('response')">
-                            <div><strong>💬 回覆訊息</strong></div>
-                            <div class="step-detail">LINE 用戶收到智能回應</div>
+                        <div class="chart-controls">
+                            <label><input type="checkbox" id="showMovingAvg"> 顯示移動平均線</label>
+                            <label><input type="checkbox" id="showTrendLine"> 顯示回歸趨勢線</label>
                         </div>
-                        
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
-                            <div class="flow-step anythingllm" onclick="showStepDetail('anythingllm')">
-                                <div><strong>📚 AnythingLLM Web UI</strong></div>
-                                <div class="step-detail">輔助文件管理 • 知識庫查詢 • 歷史摘要</div>
+                    </div>
+
+                    <!-- 地理分布熱圖 -->
+                    <div class="card">
+                        <h3>地理分布熱圖</h3>
+                        <div class="heatmap-container">
+                            <div class="heatmap-grid" id="geoHeatmap"></div>
+                        </div>
+                        <div class="chart-info">
+                            <small>點擊區域查看詳細數據與信賴區間</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 價格策略頁面 -->
+            <div id="pricing" class="tab-content">
+                <div class="page-header">
+                    <h2>💰 價格策略比較</h2>
+                    <p>掌握各競品在不同通路/時間/產品線的價格戰略</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- 價格分布箱形圖 -->
+                    <div class="card">
+                        <h3>價格分布分析 (Boxplot)</h3>
+                        <div class="chart-container">
+                            <canvas id="priceBoxplot"></canvas>
+                        </div>
+                        <div class="boxplot-legend">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #ff6b6b;"></span>
+                                <span>Q1 (25%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #4ecdc4;"></span>
+                                <span>Q2 中位數 (50%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #45b7d1;"></span>
+                                <span>Q3 (75%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: #96ceb4;"></span>
+                                <span>異常值</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 價格比較表 -->
+                    <div class="card">
+                        <h3>各品牌通路價格比較</h3>
+                        <div class="table-container">
+                            <table class="price-table">
+                                <thead>
+                                    <tr>
+                                        <th>品牌</th>
+                                        <th>線上通路</th>
+                                        <th>實體通路</th>
+                                        <th>差異顯著性</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>品牌A</td>
+                                        <td>$120 ± $5</td>
+                                        <td>$125 ± $7</td>
+                                        <td>*p < 0.05</td>
+                                    </tr>
+                                    <tr>
+                                        <td>品牌B</td>
+                                        <td>$115 ± $8</td>
+                                        <td>$118 ± $6</td>
+                                        <td>n.s.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>品牌C</td>
+                                        <td>$130 ± $4</td>
+                                        <td>$135 ± $9</td>
+                                        <td>**p < 0.01</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 歷史價格趨勢 -->
+                    <div class="card">
+                        <h3>歷史價格趨勢</h3>
+                        <div class="chart-container">
+                            <canvas id="priceHistoryChart"></canvas>
+                        </div>
+                        <div class="price-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">變異係數:</span>
+                                <span class="stat-value">CV = 18% (中等波動)</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modules Tab -->
-            <div id="modules" class="tab-content">
-                <div class="modules-section">
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-linebot">L</div>
-                            LINE Bot + Webhook Server
+            <!-- 輿情回饋頁面 -->
+            <div id="voice-feedback" class="tab-content">
+                <div class="page-header">
+                    <h2>📣 輿情與顧客回饋</h2>
+                    <p>整合社群評論與客戶回饋，掌握市場敏感度與潛在危機</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- 聲量極性趨勢 -->
+                    <div class="card">
+                        <h3>聲量極性趨勢</h3>
+                        <div class="chart-container">
+                            <canvas id="sentimentChart"></canvas>
                         </div>
-                        <div class="module-description">
-                            負責接收來自 LINE 群組和私訊的使用者指令，觸發各種查詢、摘要和分析任務。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">Flask 框架</span>
-                            <span class="feature-tag">Webhook 處理</span>
-                            <span class="feature-tag">訊息路由</span>
-                            <span class="feature-tag">群組管理</span>
-                        </div>
-                    </div>
-
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-analysis">A</div>
-                            指令分析器 / 任務分派 Agent
-                        </div>
-                        <div class="module-description">
-                            智能解析使用者意圖，將請求分類為「摘要」、「查詢」、「比對」等不同任務類型。可整合多種 AI API 作為分析引擎：OpenAI GPT-4 進行訊息摘要與問答生成、GPT-4V/Gemini 處理圖片解讀、Claude 3 加強語境理解、NotebookLM 提供文件分析與對話式摘要追蹤。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">NLP 解析</span>
-                            <span class="feature-tag">意圖識別</span>
-                            <span class="feature-tag">任務分派</span>
-                            <span class="feature-tag">上下文理解</span>
-                            <span class="feature-tag">多模態支援</span>
-                            <span class="feature-tag">API 整合</span>
+                        <div class="chart-info">
+                            <small>基於5萬則評論分析，情緒辨識精度87%</small>
                         </div>
                     </div>
 
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-ollama">O</div>
-                            本地模型（Ollama）
+                    <!-- 文字雲 -->
+                    <div class="card">
+                        <h3>常見關鍵字 (TF-IDF)</h3>
+                        <div class="wordcloud-container">
+                            <div class="wordcloud" id="wordCloud"></div>
                         </div>
-                        <div class="module-description">
-                            使用 Mistral 或 TinyLLaMA 等開源模型提供智能回答，完全在本地運行保護隱私。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">Mistral 7B</span>
-                            <span class="feature-tag">TinyLLaMA</span>
-                            <span class="feature-tag">本地推理</span>
-                            <span class="feature-tag">隱私保護</span>
+                        <div class="chart-info">
+                            <small>資料來自Reddit 1,204則評論</small>
                         </div>
                     </div>
 
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-anythingllm">UI</div>
-                            AnythingLLM Web UI
+                    <!-- 負評原因分析 -->
+                    <div class="card">
+                        <h3>負評原因 / 客訴熱點</h3>
+                        <div class="complaint-list">
+                            <div class="complaint-item">
+                                <div class="complaint-category">產品品質</div>
+                                <div class="complaint-percentage">35%</div>
+                                <div class="complaint-concentration">集中度高</div>
+                            </div>
+                            <div class="complaint-item">
+                                <div class="complaint-category">客服回應</div>
+                                <div class="complaint-percentage">28%</div>
+                                <div class="complaint-concentration">集中度高</div>
+                            </div>
+                            <div class="complaint-item">
+                                <div class="complaint-category">配送問題</div>
+                                <div class="complaint-percentage">22%</div>
+                                <div class="complaint-concentration">分散</div>
+                            </div>
+                            <div class="complaint-item">
+                                <div class="complaint-category">價格爭議</div>
+                                <div class="complaint-percentage">15%</div>
+                                <div class="complaint-concentration">分散</div>
+                            </div>
                         </div>
-                        <div class="module-description">
-                            提供文件知識庫管理界面，支援文件分類、查詢歷史資料和補充摘要功能。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">文件上傳</span>
-                            <span class="feature-tag">分類管理</span>
-                            <span class="feature-tag">歷史查詢</span>
-                            <span class="feature-tag">摘要生成</span>
-                        </div>
-                    </div>
-
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-storage">📁</div>
-                            檔案儲存 Workspace
-                        </div>
-                        <div class="module-description">
-                            統一管理來自群組分享或手動上傳的各類文件，建立結構化的知識庫。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">文件存儲</span>
-                            <span class="feature-tag">版本控制</span>
-                            <span class="feature-tag">分類標籤</span>
-                            <span class="feature-tag">權限管理</span>
+                        <div class="chart-info">
+                            <small>意見一致性評估：Cohen's kappa = 0.72</small>
                         </div>
                     </div>
 
-                    <div class="module-card" onclick="highlightModule(this)">
-                        <div class="module-title">
-                            <div class="module-icon icon-vector">🔍</div>
-                            向量資料庫（可選）
-                        </div>
-                        <div class="module-description">
-                            使用 FAISS 或 Chroma 進行語義搜索，提升知識檢索準確度輔助 LLM 回答。
-                        </div>
-                        <div class="module-features">
-                            <span class="feature-tag">FAISS</span>
-                            <span class="feature-tag">Chroma DB</span>
-                            <span class="feature-tag">語義搜索</span>
-                            <span class="feature-tag">向量索引</span>
+                    <!-- 品牌聲量比較 -->
+                    <div class="card">
+                        <h3>品牌聲量比較</h3>
+                        <div class="chart-container">
+                            <canvas id="brandVoiceChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Resources Tab -->
-            <div id="resources" class="tab-content">
-                <div class="resources-section">
-                    <h2 class="resources-title">⚙️ 環境配置</h2>
-                    <div class="resources-grid">
-                        <div class="resource-item">
-                            <div class="resource-status status-required">!</div>
-                            <div class="resource-content">
-                                <div class="resource-name">LINE Developers 帳號</div>
-                                <div class="resource-description">申請 Messaging API Key 和設定 Webhook URL</div>
+            <!-- 通路供應鏈頁面 -->
+            <div id="channel-supply" class="tab-content">
+                <div class="page-header">
+                    <h2>🛒 通路與供應鏈分析</h2>
+                    <p>觀察產品的銷售通路分布與供應鏈穩定度</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <!-- 出貨週期圖 -->
+                    <div class="card">
+                        <h3>出貨週期分析</h3>
+                        <div class="chart-container">
+                            <canvas id="shippingCycleChart"></canvas>
+                        </div>
+                        <div class="shipping-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">平均出貨天數:</span>
+                                <span class="stat-value">4.2 ± 1.1 天</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="resource-item">
-                            <div class="resource-status status-required">!</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Ubuntu + Docker 環境</div>
-                                <div class="resource-description">安裝 AnythingLLM 和 Ollama 運行環境</div>
+                    <!-- 通路佔比 -->
+                    <div class="card">
+                        <h3>通路佔比分布</h3>
+                        <div class="chart-container">
+                            <canvas id="channelDistributionChart"></canvas>
+                        </div>
+                        <div class="channel-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">通路集中度指數:</span>
+                                <span class="stat-value">HHI = 3,500 (過度集中風險)</span>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Ollama 模型下載</div>
-                                <div class="resource-description">執行 `ollama pull mistral` 或 `ollama pull tinyllama`</div>
-                            </div>
+                    <!-- 地區通路熱圖 -->
+                    <div class="card">
+                        <h3>地區通路密度</h3>
+                        <div class="regional-heatmap">
+                            <div class="region-grid" id="regionalChannelMap"></div>
                         </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Ngrok（開發階段）</div>
-                                <div class="resource-description">將本機 Webhook 服務暫時公開供 LINE 存取</div>
-                            </div>
+                        <div class="chart-info">
+                            <small>通路密度與銷售覆蓋率統計推估</small>
                         </div>
+                    </div>
 
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Python 套件安裝</div>
-                                <div class="resource-description">Flask, langchain, requests, line-bot-sdk 等</div>
+                    <!-- 供應鏈穩定度 -->
+                    <div class="card">
+                        <h3>供應鏈穩定度指標</h3>
+                        <div class="stability-metrics">
+                            <div class="metric-item">
+                                <div class="metric-label">準時交付率</div>
+                                <div class="metric-value">94.2%</div>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: 94.2%;"></div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">向量資料庫</div>
-                                <div class="resource-description">FAISS 或 Chroma 用於語義搜索（可選配置）</div>
+                            <div class="metric-item">
+                                <div class="metric-label">庫存周轉率</div>
+                                <div class="metric-value">8.5x</div>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label">供應商多樣性</div>
+                                <div class="metric-value">12 家</div>
+                                <div class="metric-bar">
+                                    <div class="metric-fill" style="width: 75%;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </main>
 
-                <div class="resources-section" style="margin-top: 30px;">
-                    <h2 class="resources-title">🔗 API 配置</h2>
-                    <div class="resources-grid">
-                        <div class="resource-item">
-                            <div class="resource-status status-required">!</div>
-                            <div class="resource-content">
-                                <div class="resource-name">OpenAI GPT-4 API</div>
-                                <div class="resource-description">訊息摘要、技術解釋、問答生成，支援訊息分類與摘要產生功能</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">OpenAI GPT-4V API</div>
-                                <div class="resource-description">圖片與簡報解讀，抓取架構圖、示意圖等視覺資訊內容</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Google Gemini API</div>
-                                <div class="resource-description">多模態內容理解，圖像分析與文字處理的整合應用</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Anthropic Claude 3 API</div>
-                                <div class="resource-description">語境理解與自然語言解釋，技術問題說明與群組摘要強化</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">Google NotebookLM API</div>
-                                <div class="resource-description">文件分析與對話式摘要追蹤，定期整理討論紀錄自動分析</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">API 金鑰管理</div>
-                                <div class="resource-description">環境變數配置各 API 服務金鑰，設定使用額度與安全控制</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">API 路由邏輯</div>
-                                <div class="resource-description">根據任務類型智能分派至適合的 API 服務，優化成本與效能</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">容錯與備援機制</div>
-                                <div class="resource-description">API 服務異常時自動切換至本地 LLM 或備用服務</div>
-                            </div>
+        <!-- AI 洞察浮動聊天框 -->
+        <div class="ai-insights" id="aiInsights">
+            <div class="ai-bubble" id="aiBubble">
+                <i class="fas fa-brain"></i>
+            </div>
+            <div class="ai-chat-panel" id="aiChatPanel">
+                <div class="ai-header">
+                    <h3><i class="fas fa-brain"></i> AI Insights</h3>
+                    <div class="ai-controls">
+                        <button class="ai-btn" id="aiPin" title="固定/取消固定">
+                            <i class="fas fa-thumbtack"></i>
+                        </button>
+                        <button class="ai-btn" id="aiMinimize" title="最小化">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="ai-chat-content" id="aiChatContent">
+                    <div class="ai-message">
+                        <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="ai-text">
+                            <p>您好！我是AI助手，可以幫您分析儀表板數據。您可以問我：</p>
+                            <ul>
+                                <li>各模組的數據摘要</li>
+                                <li>競爭者比較分析</li>
+                                <li>趨勢預測與建議</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-
-                <div class="resources-section" style="margin-top: 30px;">
-                    <h2 class="resources-title">🖥️ 硬體配置</h2>
-                    <div class="resources-grid">
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">技嘉 AI TOP 工作站 (2x PCIe)</div>
-                                <div class="resource-description">雙 GPU 插槽配置，適合中小型 LLM 部署</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">技嘉 AI TOP 工作站 (4x PCIe)</div>
-                                <div class="resource-description">四 GPU 插槽配置，支援大型模型並行處理</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">技嘉 AI TOP Atom (NVIDIA DGX Spark, GB10)</div>
-                                <div class="resource-description">企業級 AI 加速平台，專業模型訓練與推理</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">技嘉 W7系列工作站 (低階GPU)</div>
-                                <div class="resource-description">入門級配置，適合小型模型測試開發</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-complete">✓</div>
-                            <div class="resource-content">
-                                <div class="resource-name">美超微 AI 工作站 (L40/L40S)</div>
-                                <div class="resource-description">高效能 AI 推理專用配置，企業級穩定性</div>
-                            </div>
-                        </div>
-
-                        <div class="resource-item">
-                            <div class="resource-status status-optional">?</div>
-                            <div class="resource-content">
-                                <div class="resource-name">APPLE MAC mini (M4, ARM)</div>
-                                <div class="resource-description">ARM 架構統一記憶體，適合輕量化模型部署</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="ai-input-area">
+                    <input type="text" id="aiInput" placeholder="輸入您的問題...">
+                    <button id="aiSend"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
-    
+    <script src="script.js"></script>
+</body>
+</html>
+
